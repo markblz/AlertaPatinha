@@ -162,7 +162,9 @@ async def in_bbox(
             "WHERE hidden_at IS NULL AND publish_at <= now() AND display_mode <> 'hidden' "
             "  AND display_geom && ST_MakeEnvelope(:w, :s, :e, :n, 4326)::geography "
             "  AND valid_time && tstzrange(:since, :until, '[)') "
-            "ORDER BY upper(valid_time) DESC, id LIMIT :limit"
+            # Hour bucket, then random UUID: ordering by exact valid_time would
+            # leak the true sequence of relatos published as the same hour.
+            "ORDER BY date_trunc('hour', upper(valid_time)) DESC, id LIMIT :limit"
         ),
         {
             "w": west,
