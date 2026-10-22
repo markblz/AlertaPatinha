@@ -1,6 +1,6 @@
 # ADR-0009 — PWA first; native app only if iOS push becomes the bottleneck
 
-**Status:** accepted · 2026-10-21
+**Status:** accepted · 2026-10-21 · amended by [ADR-0011](0011-mobile-first-native-ready.md) (store path: TWA → Capacitor iOS → Expo only for native-grade needs)
 
 ## Context
 Brazil is ~78% Android / 22% iOS; 65% of internet users are mobile-only, 52%

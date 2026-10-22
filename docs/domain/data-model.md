@@ -15,7 +15,7 @@ updated in place). Merges and splits then destroy history, and a wrong merge
 cannot be undone. A close second: transitive over-merge (A≈B, B≈C ⇒ A=C, false
 at colonies of look-alike cats).
 
-## Tables (sketch — the first migrations are yours to write)
+## Tables (sketch — as built: `apps/backend/alembic/versions/`)
 
 ```sql
 -- schema observations
@@ -34,7 +34,8 @@ observation(
   display_cell h3index, display_geom geography,     -- derived once at write time (stable)
   h3_r9 h3index not null, h3_r7 h3index not null,   -- blocking + aggregation
   attributes jsonb not null default '{}',           -- coat, size, sex, collar, injury flags, urgency answers
-  hidden_at timestamptz                             -- set only via moderation event
+  publish_at timestamptz not null,                  -- recorded_at + display.publish_delay (sensitive classes)
+  hidden_at timestamptz                             -- the ONLY column an UPDATE may touch (DB trigger)
 )
 observation_photo(observation_id, photo_id, position)   -- photos owned by media
 sighting_group(id) + sighting_group_member(group_id, observation_id)  -- one photo, several animals

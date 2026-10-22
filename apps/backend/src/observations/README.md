@@ -5,15 +5,14 @@
 ## Responsibility
 Create and read immutable relatos (avistamento, emergência, perdido, achado), fuzzy PT-BR time → interval, attributes, idempotency, map read model.
 
-## Public surface (planned — `public.py`)
-- `create_observation(cmd, viewer) -> ObservationId  # idempotent on client_id`
-- `get_observation(id, viewer) -> ObservationView`
-- `map_features(bbox, zoom, window, viewer) -> FeatureCollection`
+## Public surface (`public.py`)
+- `create_relato(session, NewRelato, reporter_id, now, tz) -> CreateResult` — idempotent on `client_id`; replays return the original
+- `get_relato(session, id, viewer, now, tz) -> RelatoView` — location via `geo.render_*` only
+- `map_page(session, bbox, since, until, tz) -> MapPage` — public precision for everyone, whole-hour windows, capped
+- 🧠 `domain/seen.py` (`parse_seen`, `coarsen_for_public`) — owner implements; tests `tests/observations/test_seen.py`
 
 ## Invariant
 A relato is never updated after insert; corrections are events. Spec: docs/domain/data-model.md.
 
-## Layout when code arrives
-`public.py` → `service/` → `repository/` (ORM models, queries) → `domain/` (pure logic).
-Add this module's schema to `alembic/env.py` OWNED_SCHEMAS (already listed) and a
-layers contract in `.importlinter` with its first layer.
+## Layout
+`public.py` → `service.py` → `repository/` (ORM models, queries) → `domain/` (pure logic). Enforced by the `modules-are-layered` import contract.

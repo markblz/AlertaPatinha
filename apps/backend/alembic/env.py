@@ -6,11 +6,12 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+# Each module's ORM models, so autogenerate sees them.
+import src.geo.repository.models  # noqa: F401
+import src.identity.repository.models  # noqa: F401
+import src.observations.repository.models  # noqa: F401
 from api.config import get_settings
 from src.shared.db import Base
-
-# Import each module's ORM models here as they appear, so autogenerate sees them:
-# import src.observations.repository.models  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

@@ -81,6 +81,10 @@ row: `(viewer_id, tier, observation_id, purpose, at)`. Append-only.
    allowed geometry (cell boundary / hidden) and that no field (including
    nested `attributes`, photo URLs, EXIF) carries more precision.
 5. Photos: EXIF stripped from every public variant (photo-pipeline.md).
+6. **Public filters use public geometry.** Map/bbox queries filter on `display_geom`, never `true_geom`: shrinking a bbox until a relato disappears would otherwise binary-search the exact point.
+7. **Public time filters are whole hours.** `since`/`until` are rounded server-side, so sliding the window minute by minute cannot recover `valid_time` finer than the published precision.
+8. **Fail closed.** `geo.render_public` raises if a policy ever returns an exact point for the public viewer; GPS `accuracy_m` is only serialized next to an exact point (next to a cell it describes the hidden fix).
+9. **Audit before serve.** The exact-read log row is committed before the response is sent; `geo.location_access_log` rejects UPDATE/DELETE at the database level.
 
 ## Map visual language
 

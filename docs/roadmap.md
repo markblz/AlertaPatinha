@@ -17,6 +17,8 @@ the map is never empty where people look. Cold start is local, not national.
 
 Goal: anyone reports in < 30 s without an account; the map shows it honestly.
 
+**Status:** slice 1 built on `feat/m1-relatar-mapa` (report without photo, map, share page, offline outbox, native-ready frontend — [plan](plans/m1-slice-1.md)). Waiting on 🧠 `geo` policy + `parse_seen`.
+
 - `identity`: anonymous session (device-bound, rate-limited).
 - `media`: presigned upload → quarantine → job: decode, EXIF read+strip, face/plate blur (EgoBlur, Apache-2.0 — required before public launch, compliance §6), variants, ThumbHash, PDQ. Add `procrastinate` + `worker` service + `pyvips` here.
 - 🧠 `geo`: `classify_privacy`, `display_for`, `view_for` (location-privacy.md) + contract tests.

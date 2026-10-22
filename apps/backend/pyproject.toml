@@ -11,6 +11,7 @@ dependencies = [
     "alembic>=1.20",
     "geoalchemy2>=0.20",
     "pydantic-settings>=2.6",
+    "h3>=4.5,<5",
 ]
 
 [dependency-groups]
@@ -42,7 +43,7 @@ strict = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["geoalchemy2.*"]
+module = ["geoalchemy2.*", "h3.*"]  # h3: typed wrapper in src/geo/domain/cells.py
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

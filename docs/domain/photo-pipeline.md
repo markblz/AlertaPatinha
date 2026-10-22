@@ -26,7 +26,7 @@ How it is enforced (all design calls):
  ─────────────                         ─────────────────                    ──────────────
  <input type=file accept=image/* capture=environment>
   │ ① read EXIF GPS + DateTimeOriginal as a *hint* (canvas re-encode drops EXIF)
-  │ ② createImageBitmap → (Offscreen)Canvas, ~1600–2048 px, WebP/JPEG q≈0.75–0.8
+  │ ② createImageBitmap → (Offscreen)Canvas, ~1600–2048 px, JPEG q≈0.75–0.8 (Safari iOS can't encode WebP from canvas — ADR-0011)
   │ ③ IndexedDB outbox; client UUIDv7 = idempotency key
   ├─ POST /media/uploads ───────────▶ create_upload(): presign, ~5 min TTL,
   │                                   content-type + max-size conditions
@@ -261,5 +261,5 @@ An LGPD deletion request cascades to every row above, except objects under `lega
 4. ⛔ Choose the production bucket: R2 needs Cloudflare to offer the ANPD SCCs (not verified); Magalu's prices and CDN were not retrieved ([CTS Q7](<../research/research_notes/Stray pet platform research/core_tech_stack.md>)).
 5. Licenses marked n/i: libvips/pyvips, Pillow, pillow-heif, PDQ, ThumbHash, imgproxy, pgvector, ONNX Runtime. Also the per-weight MDv6 license text and EgoBlur's LICENSE file.
 6. Legal review of the DINOv3 license and of MegaDescriptor's NC terms; PetFace dataset license.
-7. Test whether WhatsApp Cloud API media really lacks EXIF, and whether iOS `<input type=file>` still converts HEIC to JPEG. Both are unverified ([AP §1](<../research/research_notes/Stray pet platform research/ai_pipelines.md>)).
+7. Test whether WhatsApp Cloud API media really lacks EXIF, and whether iOS `<input type=file>` still converts HEIC to JPEG (Safari 27 beta notes say it stops converting: expect raw HEIC from iOS 27 — [mobile notes](<../research/research_notes/Mobile and native path/mobile_native_path.md>)). Both are unverified on devices ([AP §1](<../research/research_notes/Stray pet platform research/ai_pipelines.md>)).
 8. Benchmark the detector, EgoBlur and embedding models on CPU on the target VM. The notes have no sourced latency for any of them.

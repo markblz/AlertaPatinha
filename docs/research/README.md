@@ -15,6 +15,7 @@ and gaps. The report synthesizes all seven.
 | [core_tech_stack](<research_notes/Stray pet platform research/core_tech_stack.md>) | architecture, ADRs 0001–0009 |
 | [ai_pipelines](<research_notes/Stray pet platform research/ai_pipelines.md>) | photo-pipeline, whatsapp-intake, ADR-0010 |
 | [naming](<research_notes/Stray pet platform research/naming.md>) | brand (chosen: Alerta Patinha) |
+| [mobile_native_path](<research_notes/Mobile and native path/mobile_native_path.md>) (2026-10-22) | ADR-0011, photo-pipeline (JPEG client encode, HEIC), frontend zones |
 
 ## Where design decisions override the report
 

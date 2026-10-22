@@ -1,0 +1,989 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Alerta Patinha API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Live",
+        "operationId": "health_live",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Live"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Ready",
+        "operationId": "health_ready",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Health Ready"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/anonymous": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Start Anonymous",
+        "operationId": "sessions_start_anonymous",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/StartSessionIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/me": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Me",
+        "operationId": "sessions_me",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/relatos": {
+      "post": {
+        "tags": [
+          "relatos"
+        ],
+        "summary": "Create",
+        "operationId": "relatos_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRelatoIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelatoCreated"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/relatos/{relato_id}": {
+      "get": {
+        "tags": [
+          "relatos"
+        ],
+        "summary": "Detail",
+        "operationId": "relatos_detail",
+        "parameters": [
+          {
+            "name": "relato_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Relato Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelatoOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/v1/map": {
+      "get": {
+        "tags": [
+          "relatos"
+        ],
+        "summary": "Map Features",
+        "operationId": "relatos_map_features",
+        "parameters": [
+          {
+            "name": "bbox",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "west,south,east,north (WGS84)",
+              "title": "Bbox"
+            },
+            "description": "west,south,east,north (WGS84)"
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Until"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnimalFlag": {
+        "type": "string",
+        "enum": [
+          "community",
+          "colony",
+          "sensitive"
+        ],
+        "title": "AnimalFlag"
+      },
+      "AttributesIn": {
+        "properties": {
+          "size": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "small",
+                  "medium",
+                  "large"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          },
+          "coat_colors": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "black",
+                "white",
+                "caramel",
+                "brown",
+                "gray",
+                "tabby",
+                "tricolor",
+                "spotted"
+              ]
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Coat Colors"
+          },
+          "collar": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collar"
+          },
+          "injured": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Injured"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AttributesIn",
+        "description": "Structured only. No free text yet: public notes would carry phone\nnumbers (Pix scams) and names before moderation exists (M4)."
+      },
+      "CreateRelatoIn": {
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/RelatoKind"
+          },
+          "species": {
+            "$ref": "#/components/schemas/Species"
+          },
+          "animal_count": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Animal Count",
+            "default": 1
+          },
+          "location": {
+            "$ref": "#/components/schemas/LocationIn"
+          },
+          "seen_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seen Text"
+          },
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/AnimalFlag"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Flags"
+          },
+          "attributes": {
+            "$ref": "#/components/schemas/AttributesIn"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_id",
+          "kind",
+          "species",
+          "location"
+        ],
+        "title": "CreateRelatoIn"
+      },
+      "DisplayMode": {
+        "type": "string",
+        "enum": [
+          "exact",
+          "approximate",
+          "hidden"
+        ],
+        "title": "DisplayMode"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "errors": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorBody"
+      },
+      "ErrorOut": {
+        "properties": {
+          "detail": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorOut"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LocSource": {
+        "type": "string",
+        "enum": [
+          "gps",
+          "pin",
+          "geocode",
+          "text"
+        ],
+        "title": "LocSource"
+      },
+      "LocationIn": {
+        "properties": {
+          "lat": {
+            "type": "number",
+            "maximum": 5.5,
+            "minimum": -34.0,
+            "title": "Lat"
+          },
+          "lng": {
+            "type": "number",
+            "maximum": -28.6,
+            "minimum": -74.1,
+            "title": "Lng"
+          },
+          "accuracy_m": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 50000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accuracy M"
+          },
+          "source": {
+            "$ref": "#/components/schemas/LocSource"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lat",
+          "lng",
+          "source"
+        ],
+        "title": "LocationIn"
+      },
+      "LocationOut": {
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/DisplayMode"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PointGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "accuracy_m": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accuracy M"
+          },
+          "cell": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cell"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "geometry"
+        ],
+        "title": "LocationOut"
+      },
+      "MapFeatureOut": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "Feature",
+            "title": "Type",
+            "default": "Feature"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PointGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/MapFeatureProps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "geometry",
+          "properties"
+        ],
+        "title": "MapFeatureOut"
+      },
+      "MapFeatureProps": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/RelatoKind"
+          },
+          "species": {
+            "$ref": "#/components/schemas/Species"
+          },
+          "animal_count": {
+            "type": "integer",
+            "title": "Animal Count"
+          },
+          "display_mode": {
+            "$ref": "#/components/schemas/DisplayMode"
+          },
+          "seen_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Seen Start"
+          },
+          "seen_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Seen End"
+          },
+          "seen_precision": {
+            "$ref": "#/components/schemas/TimePrecision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "species",
+          "animal_count",
+          "display_mode",
+          "seen_start",
+          "seen_end",
+          "seen_precision"
+        ],
+        "title": "MapFeatureProps",
+        "description": "Flat on purpose: MapLibre style expressions read top-level properties."
+      },
+      "MapOut": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "FeatureCollection",
+            "title": "Type",
+            "default": "FeatureCollection"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/MapFeatureOut"
+            },
+            "type": "array",
+            "title": "Features"
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated",
+            "default": false
+          },
+          "zoom_in": {
+            "type": "boolean",
+            "title": "Zoom In",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "features"
+        ],
+        "title": "MapOut"
+      },
+      "PointGeometry": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "Point",
+            "title": "Type",
+            "default": "Point"
+          },
+          "coordinates": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Coordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "coordinates"
+        ],
+        "title": "PointGeometry"
+      },
+      "PolygonGeometry": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "Polygon",
+            "title": "Type",
+            "default": "Polygon"
+          },
+          "coordinates": {
+            "items": {
+              "items": {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Coordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "coordinates"
+        ],
+        "title": "PolygonGeometry"
+      },
+      "RelatoCreated": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "share_path": {
+            "type": "string",
+            "title": "Share Path"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "share_path"
+        ],
+        "title": "RelatoCreated"
+      },
+      "RelatoKind": {
+        "type": "string",
+        "enum": [
+          "sighting",
+          "emergency",
+          "lost",
+          "found"
+        ],
+        "title": "RelatoKind"
+      },
+      "RelatoOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/RelatoKind"
+          },
+          "species": {
+            "$ref": "#/components/schemas/Species"
+          },
+          "animal_count": {
+            "type": "integer",
+            "title": "Animal Count"
+          },
+          "location": {
+            "$ref": "#/components/schemas/LocationOut"
+          },
+          "seen": {
+            "$ref": "#/components/schemas/SeenOut"
+          },
+          "attributes": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Attributes"
+          },
+          "is_mine": {
+            "type": "boolean",
+            "title": "Is Mine"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "species",
+          "animal_count",
+          "location",
+          "seen",
+          "attributes",
+          "is_mine"
+        ],
+        "title": "RelatoOut"
+      },
+      "SeenOut": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End"
+          },
+          "precision": {
+            "$ref": "#/components/schemas/TimePrecision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "precision"
+        ],
+        "title": "SeenOut"
+      },
+      "SessionOut": {
+        "properties": {
+          "tier": {
+            "type": "integer",
+            "title": "Tier"
+          },
+          "token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tier"
+        ],
+        "title": "SessionOut"
+      },
+      "Species": {
+        "type": "string",
+        "enum": [
+          "dog",
+          "cat",
+          "other"
+        ],
+        "title": "Species"
+      },
+      "StartSessionIn": {
+        "properties": {
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "cookie",
+              "token"
+            ],
+            "title": "Delivery",
+            "default": "cookie"
+          }
+        },
+        "type": "object",
+        "title": "StartSessionIn"
+      },
+      "TimePrecision": {
+        "type": "string",
+        "enum": [
+          "exact",
+          "minutes",
+          "hour",
+          "part_of_day",
+          "day",
+          "approx"
+        ],
+        "title": "TimePrecision"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

@@ -29,8 +29,8 @@ modules =
     src.moderation
 ignore_imports =
     src.** -> src.*.public
-# Nothing crosses modules yet; flip to `error` once the first public.py import lands.
-unmatched_ignore_imports_alerting = none
+# Error if the pattern ever matches nothing: a typo would silently disable the contract.
+unmatched_ignore_imports_alerting = error
 
 # Direction between modules (docs/architecture.md). Higher may import lower
 # (through public.py); lower never imports higher. `|` = independent siblings.
@@ -44,14 +44,36 @@ layers =
     src.observations
     src.geo | src.media | src.identity
 
-# When a module grows layers, add a contract like:
-# [importlinter:contract:chains-layered]
-# name = chains module is layered
-# type = layers
-# layers =
-#     public
-#     service
-#     repository
-#     domain
-# containers =
-#     src.chains
+# The HTTP layer talks to modules only through public.py. Indirect imports
+# (api -> public -> service) are fine; direct ones bypass the module surface.
+[importlinter:contract:api-uses-public-only]
+name = api imports modules only through public.py
+type = forbidden
+source_modules =
+    api
+forbidden_modules =
+    src.geo.domain
+    src.geo.repository
+    src.geo.service
+    src.identity.domain
+    src.identity.repository
+    src.identity.service
+    src.observations.domain
+    src.observations.repository
+    src.observations.service
+allow_indirect_imports = True
+
+# Inside each module: public -> service -> repository -> domain, never upward.
+# Add the module to `containers` when it gets its first layer.
+[importlinter:contract:modules-are-layered]
+name = modules are layered (public > service > repository > domain)
+type = layers
+layers =
+    public
+    service
+    repository
+    domain
+containers =
+    src.geo
+    src.identity
+    src.observations

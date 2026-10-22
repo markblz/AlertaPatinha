@@ -90,6 +90,25 @@ claims expire and re-open. Notification budget per user.
 **5. Conversa (M3)** — POST message → persist → enqueue publish `caso:<id>`
 → Centrifugo → subscribers. Clients never publish directly.
 
+## Frontend structure (ADR-0011)
+
+```
+apps/frontend/
+├── app/(app)/        screens that must survive a static export (map, /relatar)
+├── app/(public)/     server-rendered share pages + OG images (/r/[id])
+├── core/             pure TS, runs in a future React Native app unchanged:
+│   ├── api/          openapi.json (generated) → schema.d.ts → typed client
+│   ├── relato/       vocabulary, time labels      outbox/  offline queue logic
+├── platform/web/     browser adapters (IndexedDB, geolocation, share, session)
+├── features/         web UI (React) built on core + platform
+└── server/           public-zone only: backend fetch without cookies
+```
+
+Contract loop: change an endpoint → `make api-contract` (OpenAPI → TS types)
+→ `tsc` shows every client break. A backend test fails if the committed
+`openapi.json` is stale. `pnpm check:arch` keeps `core/` platform-free and the
+app zone static-exportable.
+
 ## Cross-cutting decisions
 
 | Concern | Decision | ADR |
@@ -103,6 +122,7 @@ claims expire and re-open. Notification budget per user.
 | Storage | S3 API; SeaweedFS dev; no MinIO; originals never served | 0007 |
 | Identity of people | Anonymous-first, WhatsApp OTP, trust tiers, in-house | 0008 |
 | Client | PWA first; native only if iOS push becomes the bottleneck | 0009 |
+| Mobile & stores | Two frontend zones, pure-TS core, Bearer-or-cookie, TWA → Capacitor iOS → Expo | 0011 |
 | Matching | System suggests, humans confirm — heuristics and ML alike | 0010 |
 
 ## API style

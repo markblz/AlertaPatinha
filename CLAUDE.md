@@ -59,6 +59,17 @@ ONE Postgres. Read `docs/architecture.md` and `docs/domain/glossary.md` first.
     never a host `pnpm add` (host glibc vs container musl; the dev server
     never sees host `node_modules`).
 
+12. **Native-ready frontend (ADR-0011).** `core/` is pure TS (no DOM/React/
+    Next). `app/(app)/`, `features/`, `platform/` stay static-exportable: no
+    Server Actions, `next/headers`, route handlers or dynamic segments.
+    Server-rendered share pages live in `app/(public)/`. Enforced by
+    `pnpm check:arch` (`make web-typecheck`).
+
+13. **The API contract is generated.** After any endpoint/schema change run
+    `make api-contract`; the backend test `test_openapi_contract` fails on a
+    stale `apps/frontend/core/api/openapi.json`. Errors use one envelope
+    `{detail: {code, message}}`; clients branch on `code`.
+
 ## Dependency flow (per module)
 
 ```
@@ -80,7 +91,7 @@ AlertaPatinha/
 │   │   ├── api/            # HTTP layer: routers, schemas, deps
 │   │   └── src/<module>/   # identity, observations, geo, chains, media,
 │   │                       # conversations, alerts, moderation (+ README.md each)
-│   └── frontend/           # Next.js PWA (pnpm, MapLibre, Tailwind)
+│   └── frontend/           # Next.js PWA: app/(app) · app/(public) · core/ · platform/ · features/
 ├── infra/                  # postgres image, centrifugo, seaweedfs configs
 ├── docs/
 │   ├── vision.md  architecture.md  roadmap.md  compliance.md
