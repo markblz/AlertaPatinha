@@ -1,0 +1,134 @@
+name: alertapatinha
+
+# Dev stack. Postgres is the only source of truth; valkey/centrifugo/s3 hold
+# derived or transient state and may be wiped at any time.
+# Host ports default to 5440/8100/3100/8101/8102 so this stack can run beside
+# Kubera (5433/5434, 8000/8001, 3000/3001).
+
+services:
+  postgres:
+    build:
+      context: ./infra/postgres
+    image: alertapatinha-postgres:dev
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-alertapatinha}
+      POSTGRES_USER: ${POSTGRES_USER:-alertapatinha}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      # PG18 images keep PGDATA under /var/lib/postgresql/18/docker. Mounting
+      # the pre-18 path (/var/lib/postgresql/data) silently makes data ephemeral.
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - "127.0.0.1:${HOST_POSTGRES_PORT:-5440}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-alertapatinha} -d ${POSTGRES_DB:-alertapatinha}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  valkey:
+    image: valkey/valkey:9.1-alpine
+    command: ["valkey-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  centrifugo:
+    image: centrifugo/centrifugo:v6.10.1
+    command: ["centrifugo", "--config", "/centrifugo/config.json"]
+    environment:
+      CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY: ${CENTRIFUGO_HMAC_SECRET:-dev-only-hmac-secret}
+      CENTRIFUGO_HTTP_API_KEY: ${CENTRIFUGO_API_KEY:-dev-only-api-key}
+      CENTRIFUGO_CLIENT_ALLOWED_ORIGINS: ${PUBLIC_WEB_ORIGIN:-http://localhost:3100}
+    volumes:
+      - ./infra/centrifugo/config.json:/centrifugo/config.json:ro
+    depends_on:
+      valkey:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${HOST_CENTRIFUGO_PORT:-8101}:8000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  s3:
+    image: chrislusf/seaweedfs:4.48
+    command: ["server", "-dir=/data", "-s3", "-s3.config=/etc/seaweedfs/s3.json"]
+    volumes:
+      - s3_data:/data
+      - ./infra/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+    ports:
+      - "127.0.0.1:${HOST_S3_PORT:-8102}:8333"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./apps/backend
+    image: alertapatinha-backend:dev
+    # Host UID so bind-mounted sources stay writable (alembic revision files).
+    user: "${UID:-1000}:${GID:-1000}"
+    command: >
+      uvicorn api.main:app --host 0.0.0.0 --port 8000 --proxy-headers
+      --reload --reload-dir /app/api --reload-dir /app/src
+    environment:
+      PYTHONPATH: /app
+      ENV: dev
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-alertapatinha}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-alertapatinha}
+      CORS_ORIGINS: ${PUBLIC_WEB_ORIGIN:-http://localhost:3100}
+      CENTRIFUGO_API_URL: http://centrifugo:8000/api
+      CENTRIFUGO_API_KEY: ${CENTRIFUGO_API_KEY:-dev-only-api-key}
+      CENTRIFUGO_HMAC_SECRET: ${CENTRIFUGO_HMAC_SECRET:-dev-only-hmac-secret}
+      S3_ENDPOINT_URL: http://s3:8333
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-dev-access-key}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-dev-secret-key}
+    volumes:
+      - ./apps/backend/api:/app/api
+      - ./apps/backend/src:/app/src
+      - ./apps/backend/alembic:/app/alembic
+      - ./apps/backend/tests:/app/tests
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${HOST_BACKEND_PORT:-8100}:8000"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./apps/frontend
+    image: alertapatinha-web:dev
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+      # Server-side: next.config.ts proxies /api/* here (browser never sees it).
+      BACKEND_INTERNAL_URL: http://backend:8000
+      # Browser-facing URLs: the browser runs on the host, not in the network.
+      NEXT_PUBLIC_CENTRIFUGO_URL: ${NEXT_PUBLIC_CENTRIFUGO_URL:-ws://localhost:8101/connection/websocket}
+      NEXT_PUBLIC_MAP_STYLE_URL: ${NEXT_PUBLIC_MAP_STYLE_URL:-https://tiles.openfreemap.org/styles/liberty}
+    volumes:
+      - ./apps/frontend:/app
+      # Named volumes shadow host dirs: host is glibc, container is musl, so
+      # node_modules are not interchangeable. Install deps with `make web-add`.
+      - web_node_modules:/app/node_modules
+      - web_next:/app/.next
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:${HOST_WEB_PORT:-3100}:3000"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  s3_data:
+  web_node_modules:
+  web_next:

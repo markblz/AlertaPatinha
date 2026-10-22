@@ -1,0 +1,32 @@
+# env & secrets
+.env
+.env.*
+!.env.example
+secrets/*
+!secrets/.gitkeep
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# node / next
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# editors / os
+.vscode/
+.idea/
+.DS_Store
+
+# local data
+backups/
+*.pmtiles

@@ -1,0 +1,50 @@
+[project]
+name = "alertapatinha-backend"
+version = "0.1.0"
+description = "Alerta Patinha backend — modular monolith (relatos, casos, geo privacy, alerts)"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fastapi>=0.159",
+    "uvicorn[standard]>=0.54",
+    "sqlalchemy[asyncio]>=2.1.6,<2.2",
+    "asyncpg>=0.30",
+    "alembic>=1.20",
+    "geoalchemy2>=0.20",
+    "pydantic-settings>=2.6",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "httpx2>=2.13",  # starlette TestClient transport (plain httpx is deprecated there)
+    "ruff>=0.16",
+    "mypy>=2.3",
+    "import-linter>=2.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.ruff.lint.isort]
+# ./alembic (migrations dir) would otherwise make ruff treat the alembic package as first-party.
+known-third-party = ["alembic"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["geoalchemy2.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

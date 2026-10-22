@@ -1,0 +1,57 @@
+[importlinter]
+# Run: `make imports` (uv run lint-imports)
+root_packages =
+    src
+    api
+
+[importlinter:contract:src-never-imports-api]
+name = src never imports api
+type = forbidden
+source_modules =
+    src
+forbidden_modules =
+    api
+
+# Modules reach each other ONLY through <module>/public.py. Ignoring every
+# edge into a public.py and then demanding independence means any other
+# cross-module import (to domain/, service/, repository/) fails the build.
+[importlinter:contract:modules-meet-at-public]
+name = modules only reach each other through public.py
+type = independence
+modules =
+    src.identity
+    src.observations
+    src.geo
+    src.chains
+    src.media
+    src.conversations
+    src.alerts
+    src.moderation
+ignore_imports =
+    src.** -> src.*.public
+# Nothing crosses modules yet; flip to `error` once the first public.py import lands.
+unmatched_ignore_imports_alerting = none
+
+# Direction between modules (docs/architecture.md). Higher may import lower
+# (through public.py); lower never imports higher. `|` = independent siblings.
+[importlinter:contract:module-direction]
+name = module dependency direction
+type = layers
+layers =
+    src.moderation
+    src.alerts | src.conversations
+    src.chains
+    src.observations
+    src.geo | src.media | src.identity
+
+# When a module grows layers, add a contract like:
+# [importlinter:contract:chains-layered]
+# name = chains module is layered
+# type = layers
+# layers =
+#     public
+#     service
+#     repository
+#     domain
+# containers =
+#     src.chains

@@ -1,0 +1,5 @@
+# pnpm >=11 blocks dependency install scripts unless listed here.
+# sharp ships prebuilt binaries as optional deps; its script is a
+# build-from-source fallback we never want in the image.
+allowBuilds:
+  sharp: false
